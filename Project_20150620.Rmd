@@ -1,0 +1,207 @@
+# Title: "Pratical Machine Learning Course Project"
+
+### Author: "WL"
+
+### Date: "Saturday, June 20, 2015"
+
+
+The project requires construction of a model based on a training data set collected from a group 6 participants using devices such as Jawbone Up, Nike Fuelband, and Fitbit, and then use the model to predict a testing data set with 20 individual samples. The training data set is available at: http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv, and the testing data set is available at: http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv.
+
+
+## REQUIRED PACKAGES
+
+This analysis requires installation of caret package, as well as addtional packages. The caret package can be installed as following:
+
+install.packages("caret"); 
+library(caret); 
+install.packages("randomForest"); 
+library(randomForest); 
+install.packages("e1071"); 
+library(e1071);
+library(knitr);
+
+## EXPLORATORY ANALYSIS
+
+Based on the provided data sources, the training data was read into R using the following statement:
+
+```{r}
+training <- read.csv(url("http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"))
+```
+
+Therefore the structure of this data as well additional information can be retrived:
+
+```{r}
+dim(training)
+
+# Not showing the summary of this dataset due to page limits.
+# summary(training)
+```
+
+As shown in the summary of the training dataset, multiple columns are sparse as the majority of the rows have NA's. These columns might not contribute significantly to the modeling however for this time they will be kept unless the modeling attempt could not generate desirable result. In addition, previous attempt modeling with these NA-rich columns included generated a model that does not fit well as it would give an error rate of 21.4%. We reasoned that this is due to the presence of multiple variables which have majority NA values. 
+
+As many of these columns have 19216 NA rows, any columns that have 19216 or more NA rows will be removed:
+
+
+```{r}
+
+# This script identifies all col names which has NA values in  19216 or more rows and puts all such col names into a vector:
+vect <- as.vector("")
+for (i in 1:length(training)) {
+  if (sum(is.na(training[,i])) >= 19216) {
+    vect <- append(vect, as.vector(colnames(training))[i]) }
+  else {vect <- append(vect, "")}
+}
+
+# These columns will be excluded from model fitting:
+training <- training[!(names(training) %in% vect)]
+
+# totally there are 67 columns removed per this single crierion
+dim(training)
+```
+
+
+## DATA CLEANSING AND TRANSFORMATION
+
+As sparse columns may be informative in certain specific modeling algorithums, variables with close to zero variance are usually exclued from modeling attempts since they are not only non-informative, and in situations they may break models you may want to fit. The nearZeroVar function available in the caret package diagnoses predictors that have one unique value (i.e. are zero variance predictors) or predictors that are have both of the following characteristics: they have very few unique values relative to the number of samples and the ratio of the frequency of the most common value to the frequency of the second most common value is large.
+
+
+```{r}
+require('knitr')
+
+# Perfrom nearZeroVar analysis to the variables in the training data and store the result of analysis into a data frame: 
+nzv_analysis <- nearZeroVar(training, saveMetrics=TRUE)
+
+# The above script was commented out as my knitr cannot recognize the nearZeroVar function. Have tried reinstalled R and RStudio but still did not work. The workaround is to write the nzv_analysis into a file separately and then read the file into R for the following analysis.
+# write.table(nzv_analysis, "nev.txt", sep="\t") 
+
+# A new workaround for this issue is to use the knit2html() as the previous issue was caused by the R-Studio built-in knitr function:
+# knit2html("Project_20150620.Rmd",  output = "Project_20150620.html")
+```
+
+```{r echo=FALSE}
+# nzv_analysis <- read.csv("nev.txt",sep="\t")
+```
+
+```{r}
+# Collect the vairables that with "TRUE" in the nzv column, and remove these variables from the training dataset:
+training2 <- training[!(names(training) %in% as.vector(rownames(subset(nzv_analysis,nzv=="TRUE"))))]
+```
+
+
+```{r}
+# The training2 dataset has 60 variables removed, and the current dataset has 100 rows:
+dim(training2)
+```
+
+
+The column 'X', which serves as a sequential id for the number of rows, also needs to be removed prior to modeling. Similarly, the "timestamp"" and "user_name" columns would not help the model fitting either. After this operation, the dataset training 3 has 97 variables left:
+
+```{r}
+training3 <- training2[!(names(training2) %in% c("X","user_name","raw_timestamp_part_1","raw_timestamp_part_2","cvtd_timestamp"))]
+
+dim(training3)
+```
+
+Pre-modeling attempt without removing the NA-rick columns led to poorly fitting model generated with the Random Forest algorithm, therefore those columns are to be removed with the following statements:
+
+
+```{r}
+
+```
+
+
+## DATA MODELING
+
+As the dataset provided has been perscribed for training, no further partitioning would be necessary. However, as the testing datset has only 20 rows, it would not be sufficient for testing how well the model actually fit. In that, the training dataset will be sub-partitioned into two dataset, with 60% into the training set tr_training3, and 40% into the testing set test_training3.
+
+
+```{r}
+inTrain <- createDataPartition(y=training3$classe, p=0.6, list=FALSE)
+tr_training3 <- training3[inTrain, ]
+test_training3 <- training3[-inTrain, ]
+
+```
+
+The original training3 dataset was divided as shown:
+
+```{r}
+# Number of rows present in the tr_training3 set:
+nrow(tr_training3)
+
+# Number of rows present in the test_training3 set:
+nrow(test_training3)
+
+```
+
+The model will be built with the tr_training3 dataset, with the variable "classe" as the outcome and the rest variables as predictors. 
+
+The k-fold cross validation method, also available in the caret package, was used for cross validation purposes. This method involves splitting the dataset into k-subsets while one subset is held out while the model is trained on all other subsets. This process is completed until accuracy is determined for each instance in the dataset, and an overall accuracy estimate is provided.
+
+```{r}
+# k-fold cross validation was adopted. Due to resource limitation, only 3-fold was used to prevent the modeling process taking too long. 
+trainControl = trainControl(method = "cv", number = 3)
+
+```
+
+There are multiple algorithms for building classification models. Commonly used algorithms include but not limited to generalized linear model (glm), decision trees, and random forest. The generalized linear model might be over simplifying the relationship, and both of the rest however seem to work. Belows the model construction using random forest algorithm was described. This step would require the installation of the randomForest package as mentioned at the beginning of this report.
+
+
+```{r}
+# Model fitting with rf method: 
+modelRF <- train(classe ~., data = tr_training3, method="rf", trControl = trainControl)
+
+# This command shows the critical information for this modelRF:
+modelRF$finalModel
+
+```
+
+As previously mentioned, model fitting with the NA-rich included columns led to a model with an error rate of 21.4%. After removing those columns, the fitted model has an estimated error rate of 0.27%. This indicates that proper handling of columns with a high percentage of rows with NA values could be critical for proper model fitting. 
+
+The trained model was then tested with the testing sub-dataset, test_training3. The result indicates that the dataset with NA-rich columns removed work much more efficiently in model fitting. This suggests thst proper data cleansing woud be a critical step before the data modeling processes.
+
+
+```{r}
+# The model built in the previous step was used to predict using the test_training3 dataset:
+predictions <- predict(modelRF, test_training3)
+
+# And then use the confusionMatrix to view the predicting result:
+confusionMatrix(predictions, test_training3$classe)
+
+```
+
+## CONCLUSIONS
+
+Model fitting invovles a number of careful considerations, including the selection of appropriate variables to be used for building models, the consideration of the effect of sparse columns, and the selection of appropriate algorithums. In this report 
+
+
+## WRITE UP
+
+The following function was used to extract the predicted 'classe' value for the testing dataset and then write the values to the "answers.txt" files:
+
+### Read the testing dataset into R:
+testing <- read.csv(url("http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"))
+
+### Perdict the testing dataset based on the model modelRF:
+predictions_testing <- predict(modelRF, testing)
+
+### Create the function:
+pml_write_files = function(x) {
+    n = length(x)
+    for (i in 1:n) {
+        filename = paste0("problem_id_", i, ".txt")
+        write.table(x[i], file = filename, quote = FALSE, row.names = FALSE, 
+            col.names = FALSE)
+    }
+}
+
+### Write files
+pml_write_files(predictions_testing)
+
+This will generate 20 txt files each has the number of the records in the file name and the predicted result in the txt file as a single character string.
+
+
+## Citations
+
+Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers' Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6.
+
+

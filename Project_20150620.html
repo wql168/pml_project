@@ -203,11 +203,11 @@ hr {
 <body>
 <h1>Title: &ldquo;Pratical Machine Learning Course Project&rdquo;</h1>
 
-<h3>author: &ldquo;WL&rdquo;</h3>
+<h3>Author: &ldquo;WL&rdquo;</h3>
 
-<h3>date: &ldquo;Saturday, June 20, 2015&rdquo;</h3>
+<h3>Date: &ldquo;Saturday, June 20, 2015&rdquo;</h3>
 
-<p>The project requires construction of a model based on a training data set collected from a group 6 participants using devices such as Jawbone Up, Nike Fuelband, and Fitbit, and then use the model to predict a testing data set with 20 individual samples. The training data set is available at <a href="http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv">http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv</a>, and the testing data set is available at: <a href="http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv">http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv</a>.</p>
+<p>The project requires construction of a model based on a training data set collected from a group 6 participants using devices such as Jawbone Up, Nike Fuelband, and Fitbit, and then use the model to predict a testing data set with 20 individual samples. The training data set is available at: <a href="http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv">http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv</a>, and the testing data set is available at: <a href="http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv">http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv</a>.</p>
 
 <h2>REQUIRED PACKAGES</h2>
 
@@ -236,7 +236,8 @@ library(knitr);</p>
 <pre><code>## [1] 19622   160
 </code></pre>
 
-<pre><code class="r"># summary(training)
+<pre><code class="r"># Not showing the summary of this dataset due to page limits.
+# summary(training)
 </code></pre>
 
 <p>As shown in the summary of the training dataset, multiple columns are sparse as the majority of the rows have NA&#39;s. These columns might not contribute significantly to the modeling however for this time they will be kept unless the modeling attempt could not generate desirable result. In addition, previous attempt modeling with these NA-rich columns included generated a model that does not fit well as it would give an error rate of 21.4%. We reasoned that this is due to the presence of multiple variables which have majority NA values. </p>
@@ -335,8 +336,10 @@ trainControl = trainControl(method = &quot;cv&quot;, number = 3)
 
 <p>There are multiple algorithms for building classification models. Commonly used algorithms include but not limited to generalized linear model (glm), decision trees, and random forest. The generalized linear model might be over simplifying the relationship, and both of the rest however seem to work. Belows the model construction using random forest algorithm was described. This step would require the installation of the randomForest package as mentioned at the beginning of this report.</p>
 
-<pre><code class="r">modelRF &lt;- train(classe ~., data = tr_training3, method=&quot;rf&quot;, trControl = trainControl)
+<pre><code class="r"># Model fitting with rf method: 
+modelRF &lt;- train(classe ~., data = tr_training3, method=&quot;rf&quot;, trControl = trainControl)
 
+# This command shows the critical information for this modelRF:
 modelRF$finalModel
 </code></pre>
 
@@ -347,17 +350,17 @@ modelRF$finalModel
 ##                      Number of trees: 500
 ## No. of variables tried at each split: 27
 ## 
-##         OOB estimate of  error rate: 0.27%
+##         OOB estimate of  error rate: 0.29%
 ## Confusion matrix:
-##      A    B    C    D    E class.error
-## A 3348    0    0    0    0 0.000000000
-## B    8 2267    3    1    0 0.005265467
-## C    0    6 2048    0    0 0.002921130
-## D    0    0    9 1921    0 0.004663212
-## E    0    1    1    3 2160 0.002309469
+##      A    B    C    D    E  class.error
+## A 3347    0    0    0    1 0.0002986858
+## B    6 2272    1    0    0 0.0030715226
+## C    0    4 2046    4    0 0.0038948393
+## D    0    0   11 1919    0 0.0056994819
+## E    0    2    0    5 2158 0.0032332564
 </code></pre>
 
-<p>As shown above, this model does not fit well with the training dataset as it would give an error rate of 21.4%. We reasoned that this is due to the presence of multiple variables which have majority NA values. These NA rich columns will be removed and the new data set will be subjected to the same modeling processes. Predict function does not even work starting from this model.</p>
+<p>As previously mentioned, model fitting with the NA-rich included columns led to a model with an error rate of 21.4%. After removing those columns, the fitted model has an estimated error rate of 0.27%. This indicates that proper handling of columns with a high percentage of rows with NA values could be critical for proper model fitting. </p>
 
 <p>The trained model was then tested with the testing sub-dataset, test_training3. The result indicates that the dataset with NA-rich columns removed work much more efficiently in model fitting. This suggests thst proper data cleansing woud be a critical step before the data modeling processes.</p>
 
@@ -372,33 +375,33 @@ confusionMatrix(predictions, test_training3$classe)
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 2231    9    0    0    0
-##          B    0 1507    9    1    0
-##          C    0    2 1359    5    0
-##          D    0    0    0 1278    2
-##          E    1    0    0    2 1440
+##          A 2231    6    0    0    0
+##          B    1 1509    1    0    0
+##          C    0    3 1367    8    0
+##          D    0    0    0 1277    1
+##          E    0    0    0    1 1441
 ## 
 ## Overall Statistics
 ##                                           
-##                Accuracy : 0.996           
-##                  95% CI : (0.9944, 0.9973)
+##                Accuracy : 0.9973          
+##                  95% CI : (0.9959, 0.9983)
 ##     No Information Rate : 0.2845          
 ##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
 ##                                           
-##                   Kappa : 0.995           
+##                   Kappa : 0.9966          
 ##  Mcnemar&#39;s Test P-Value : NA              
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.9996   0.9928   0.9934   0.9938   0.9986
-## Specificity            0.9984   0.9984   0.9989   0.9997   0.9995
-## Pos Pred Value         0.9960   0.9934   0.9949   0.9984   0.9979
-## Neg Pred Value         0.9998   0.9983   0.9986   0.9988   0.9997
+## Sensitivity            0.9996   0.9941   0.9993   0.9930   0.9993
+## Specificity            0.9989   0.9997   0.9983   0.9998   0.9998
+## Pos Pred Value         0.9973   0.9987   0.9920   0.9992   0.9993
+## Neg Pred Value         0.9998   0.9986   0.9998   0.9986   0.9998
 ## Prevalence             0.2845   0.1935   0.1744   0.1639   0.1838
-## Detection Rate         0.2843   0.1921   0.1732   0.1629   0.1835
-## Detection Prevalence   0.2855   0.1933   0.1741   0.1631   0.1839
-## Balanced Accuracy      0.9990   0.9956   0.9962   0.9967   0.9991
+## Detection Rate         0.2843   0.1923   0.1742   0.1628   0.1837
+## Detection Prevalence   0.2851   0.1926   0.1756   0.1629   0.1838
+## Balanced Accuracy      0.9992   0.9969   0.9988   0.9964   0.9996
 </code></pre>
 
 <h2>CONCLUSIONS</h2>
@@ -409,15 +412,15 @@ confusionMatrix(predictions, test_training3$classe)
 
 <p>The following function was used to extract the predicted &#39;classe&#39; value for the testing dataset and then write the values to the &ldquo;answers.txt&rdquo; files:</p>
 
-<h4>Read the testing dataset:</h4>
+<h3>Read the testing dataset into R:</h3>
 
 <p>testing &lt;- read.csv(url(&ldquo;<a href="http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv%22)">http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv&rdquo;)</a>)</p>
 
-<h4>Perdict based on the model built:</h4>
+<h3>Perdict the testing dataset based on the model modelRF:</h3>
 
 <p>predictions_testing &lt;- predict(modelRF, testing)</p>
 
-<h4>Create the function:</h4>
+<h3>Create the function:</h3>
 
 <p>pml<em>write_files = function(x) {
     n = length(x)
@@ -428,11 +431,15 @@ confusionMatrix(predictions, test_training3$classe)
     }
 }</p>
 
-<h4>Write files</h4>
+<h3>Write files</h3>
 
 <p>pml_write_files(predictions_testing)</p>
 
 <p>This will generate 20 txt files each has the number of the records in the file name and the predicted result in the txt file as a single character string.</p>
+
+<h2>Citations</h2>
+
+<p>Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers&#39; Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6.</p>
 
 </body>
 
