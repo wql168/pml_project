@@ -37,6 +37,8 @@ dim(training)
 # summary(training)
 ```
 
+## DATA CLEANSING AND TRANSFORMATION
+
 As shown in the summary of the training dataset, multiple columns are sparse as the majority of the rows have NA's. These columns might not contribute significantly to the modeling however for this time they will be kept unless the modeling attempt could not generate desirable result. In addition, previous attempt modeling with these NA-rich columns included generated a model that does not fit well as it would give an error rate of 21.4%. We reasoned that this is due to the presence of multiple variables which have majority NA values. 
 
 As many of these columns have 19216 NA rows, any columns that have 19216 or more NA rows will be removed:
@@ -59,8 +61,6 @@ training <- training[!(names(training) %in% vect)]
 dim(training)
 ```
 
-
-## DATA CLEANSING AND TRANSFORMATION
 
 As sparse columns may be informative in certain specific modeling algorithums, variables with close to zero variance are usually exclued from modeling attempts since they are not only non-informative, and in situations they may break models you may want to fit. The nearZeroVar function available in the caret package diagnoses predictors that have one unique value (i.e. are zero variance predictors) or predictors that are have both of the following characteristics: they have very few unique values relative to the number of samples and the ratio of the frequency of the most common value to the frequency of the second most common value is large.
 
@@ -200,7 +200,7 @@ pml_write_files(predictions_testing)
 This will generate 20 txt files each has the number of the records in the file name and the predicted result in the txt file as a single character string.
 
 
-## Citations
+## CITATIONS
 
 Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers' Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6.
 

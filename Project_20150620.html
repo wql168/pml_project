@@ -240,6 +240,8 @@ library(knitr);</p>
 # summary(training)
 </code></pre>
 
+<h2>DATA CLEANSING AND TRANSFORMATION</h2>
+
 <p>As shown in the summary of the training dataset, multiple columns are sparse as the majority of the rows have NA&#39;s. These columns might not contribute significantly to the modeling however for this time they will be kept unless the modeling attempt could not generate desirable result. In addition, previous attempt modeling with these NA-rich columns included generated a model that does not fit well as it would give an error rate of 21.4%. We reasoned that this is due to the presence of multiple variables which have majority NA values. </p>
 
 <p>As many of these columns have 19216 NA rows, any columns that have 19216 or more NA rows will be removed:</p>
@@ -261,8 +263,6 @@ dim(training)
 
 <pre><code>## [1] 19622    93
 </code></pre>
-
-<h2>DATA CLEANSING AND TRANSFORMATION</h2>
 
 <p>As sparse columns may be informative in certain specific modeling algorithums, variables with close to zero variance are usually exclued from modeling attempts since they are not only non-informative, and in situations they may break models you may want to fit. The nearZeroVar function available in the caret package diagnoses predictors that have one unique value (i.e. are zero variance predictors) or predictors that are have both of the following characteristics: they have very few unique values relative to the number of samples and the ratio of the frequency of the most common value to the frequency of the second most common value is large.</p>
 
@@ -350,14 +350,14 @@ modelRF$finalModel
 ##                      Number of trees: 500
 ## No. of variables tried at each split: 27
 ## 
-##         OOB estimate of  error rate: 0.29%
+##         OOB estimate of  error rate: 0.28%
 ## Confusion matrix:
 ##      A    B    C    D    E  class.error
-## A 3347    0    0    0    1 0.0002986858
-## B    6 2272    1    0    0 0.0030715226
-## C    0    4 2046    4    0 0.0038948393
-## D    0    0   11 1919    0 0.0056994819
-## E    0    2    0    5 2158 0.0032332564
+## A 3345    2    0    0    1 0.0008960573
+## B    9 2264    4    2    0 0.0065818341
+## C    0    5 2049    0    0 0.0024342746
+## D    0    0    8 1922    0 0.0041450777
+## E    0    0    0    2 2163 0.0009237875
 </code></pre>
 
 <p>As previously mentioned, model fitting with the NA-rich included columns led to a model with an error rate of 21.4%. After removing those columns, the fitted model has an estimated error rate of 0.27%. This indicates that proper handling of columns with a high percentage of rows with NA values could be critical for proper model fitting. </p>
@@ -375,33 +375,33 @@ confusionMatrix(predictions, test_training3$classe)
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 2231    6    0    0    0
-##          B    1 1509    1    0    0
-##          C    0    3 1367    8    0
-##          D    0    0    0 1277    1
-##          E    0    0    0    1 1441
+##          A 2232    3    0    0    0
+##          B    0 1514    1    0    2
+##          C    0    1 1367   11    0
+##          D    0    0    0 1275    5
+##          E    0    0    0    0 1435
 ## 
 ## Overall Statistics
 ##                                           
-##                Accuracy : 0.9973          
-##                  95% CI : (0.9959, 0.9983)
+##                Accuracy : 0.9971          
+##                  95% CI : (0.9956, 0.9981)
 ##     No Information Rate : 0.2845          
 ##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
 ##                                           
-##                   Kappa : 0.9966          
+##                   Kappa : 0.9963          
 ##  Mcnemar&#39;s Test P-Value : NA              
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.9996   0.9941   0.9993   0.9930   0.9993
-## Specificity            0.9989   0.9997   0.9983   0.9998   0.9998
-## Pos Pred Value         0.9973   0.9987   0.9920   0.9992   0.9993
-## Neg Pred Value         0.9998   0.9986   0.9998   0.9986   0.9998
+## Sensitivity            1.0000   0.9974   0.9993   0.9914   0.9951
+## Specificity            0.9995   0.9995   0.9981   0.9992   1.0000
+## Pos Pred Value         0.9987   0.9980   0.9913   0.9961   1.0000
+## Neg Pred Value         1.0000   0.9994   0.9998   0.9983   0.9989
 ## Prevalence             0.2845   0.1935   0.1744   0.1639   0.1838
-## Detection Rate         0.2843   0.1923   0.1742   0.1628   0.1837
-## Detection Prevalence   0.2851   0.1926   0.1756   0.1629   0.1838
-## Balanced Accuracy      0.9992   0.9969   0.9988   0.9964   0.9996
+## Detection Rate         0.2845   0.1930   0.1742   0.1625   0.1829
+## Detection Prevalence   0.2849   0.1933   0.1758   0.1631   0.1829
+## Balanced Accuracy      0.9997   0.9984   0.9987   0.9953   0.9976
 </code></pre>
 
 <h2>CONCLUSIONS</h2>
@@ -437,7 +437,7 @@ confusionMatrix(predictions, test_training3$classe)
 
 <p>This will generate 20 txt files each has the number of the records in the file name and the predicted result in the txt file as a single character string.</p>
 
-<h2>Citations</h2>
+<h2>CITATIONS</h2>
 
 <p>Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers&#39; Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6.</p>
 
